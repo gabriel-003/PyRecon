@@ -3,6 +3,13 @@ import socket
 import sys
 import argparse
 import threading
+import logging
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 
 def test_port(address: str, dest_port: int) -> tuple[int, bool]:
@@ -35,7 +42,7 @@ def scan_ports_threaded(target: str, ports: list, max_threads: int = 10, verbose
             if not interrupted.is_set():
                 results.append((port_num, result, is_open))
     
-    print(f"Scanning {len(ports)} ports on {target} with {max_threads} threads")
+    logging.info(f"Scanning {len(ports)} ports on {target} with {max_threads} threads")
 
     try:
         with ThreadPoolExecutor(max_workers=max_threads) as executor:
@@ -50,10 +57,10 @@ def scan_ports_threaded(target: str, ports: list, max_threads: int = 10, verbose
                     future.result()
                 except Exception as e:
                     if not interrupted.is_set():
-                        print(f"Error scanning port: {e}")
+                        logging.error(f"Error scanning port: {e}")
     
     except KeyboardInterrupt:
-        print("\nScan interrupted by user")
+        logging.info("\nScan interrupted by user")
         interrupted.set()
         # Cancel remaining futures
         for future in futures:
@@ -66,12 +73,12 @@ def scan_ports_threaded(target: str, ports: list, max_threads: int = 10, verbose
     # Print results in order based on verbose flag
     for port_num, result, is_open in results:
         if verbose or is_open:
-            print(result)
+            logging.info(result)
     
     formatted_results = [result for _, result, _ in results]
     open_count = sum(1 for _, _, is_open in results if is_open)
     
-    print(f"Found {open_count} open port(s)")
+    logging.info(f"Found {open_count} open port(s)")
     
     return formatted_results
 
@@ -100,9 +107,9 @@ def write_to_file(results: list, filename: str):
         with open(filename, 'w') as f:
             for line in results:
                 f.write(line + "\n")
-        print(f"Results saved to {filename}")
+        logging.info(f"Results saved to {filename}")
     except IOError as e:
-        print(f"Error writing to file: {e}")
+        logging.error(f"Error writing to file: {e}")
 
 
 def main():
@@ -150,17 +157,17 @@ def main():
     try:
         target = socket.gethostbyname(args.target)
     except socket.gaierror:
-        print(f"Error: Unable to resolve hostname {args.target}")
+        logging.error(f"Error: Unable to resolve hostname {args.target}")
         sys.exit(1)
     except Exception as e:
-        print(f"Unexpected error resolving hostname: {e}")
+        logging.error(f"Unexpected error resolving hostname {e}")
         sys.exit(1)
         
 
     try:
         ports = parse_ports(args.ports)
     except ValueError as e:
-        print(e)
+        logging.error(e)
         return
 
 
