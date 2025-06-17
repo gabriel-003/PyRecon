@@ -16,7 +16,7 @@ def test_port(address: str, dest_port: int) -> tuple[int, bool]:
         return (dest_port, False)
 
 
-def scan_ports_threaded(target: str, ports: list, max_threads: int = 10):
+def scan_ports_threaded(target: str, ports: list, max_threads: int = 10, verbose: bool = False):
     # Scan ports using threading and returns formatted results
     results = []
     results_lock = threading.Lock()
@@ -33,8 +33,7 @@ def scan_ports_threaded(target: str, ports: list, max_threads: int = 10):
 
         with results_lock:
             if not interrupted.is_set():
-                results.append((port_num, result))
-                print(result)
+                results.append((port_num, result, is_open))
     
     print(f"Scanning {len(ports)} ports on {target} with {max_threads} threads")
 
@@ -59,13 +58,20 @@ def scan_ports_threaded(target: str, ports: list, max_threads: int = 10):
         # Cancel remaining futures
         for future in futures:
             future.cancel()
-        raise
+        return []
 
-    # Sort results by port number
+    # Sort results by port number to maintain order
     results.sort(key=lambda x: x[0])
-    formatted_results = [result[1] for result in results]
     
-    print(f"Found {sum(1 for _, result in results if 'OPEN' in result)} open port(s)")
+    # Print results in order based on verbose flag
+    for port_num, result, is_open in results:
+        if verbose or is_open:
+            print(result)
+    
+    formatted_results = [result for _, result, _ in results]
+    open_count = sum(1 for _, _, is_open in results if is_open)
+    
+    print(f"Found {open_count} open port(s)")
     
     return formatted_results
 
@@ -123,15 +129,15 @@ def main():
 
     parser.add_argument(
         "-t", "--threads",
-        help="Number of threads to use (default = 10)",
+        help="Number of threads to use (default = 50)",
         type=int,
-        default=10
+        default=50
     )
 
     parser.add_argument(
         "-v", "--verbose",
         action="store_true",
-        help="Enable verbose output"
+        help="Enable verbose output - show all ports, including closed ones(optional)"
     )
 
     parser.add_argument(
@@ -154,7 +160,7 @@ def main():
     # Test with example.com and 192.168.69.128
     # Usage example: python3 pyrecon.py 192.168.69.128 -p "1-1000" -t 200 -o results.txt
     # Port scan function call
-    results = scan_ports_threaded(target, ports, args.threads)
+    results = scan_ports_threaded(target, ports, args.threads, args.verbose)
 
 
     # If -o or --output is used
