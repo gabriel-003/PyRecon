@@ -147,7 +147,14 @@ def main():
 
     args = parser.parse_args()
 
-    target = socket.gethostbyname(args.target)
+    try:
+        target = socket.gethostbyname(args.target)
+    except socket.gaierror:
+        print(f"Error: Unable to resolve hostname {args.target}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Unexpected error resolving hostname: {e}")
+        sys.exit(1)
         
 
     try:
