@@ -103,14 +103,22 @@ def main():
 
     # Argument parsing
 
+    VERSION = "1.0.0"
+
     parser = argparse.ArgumentParser(description="PyRecon port scanner")
+
+    parser.add_argument(
+        "--version",
+        action='version',
+        version=f'%(prog)s {VERSION}'
+    )
 
     parser.add_argument("target", help="Target IP address or hostname")
 
     parser.add_argument(
         "-p", "--ports",
-        help="Comma-separated list of ports or range (default = 0-1023)",
-        default="0-1023"
+        help="Comma-separated list of ports or range (default = 1-1023)",
+        default="1-1023"
     )
 
     parser.add_argument(
@@ -118,6 +126,12 @@ def main():
         help="Number of threads to use (default = 10)",
         type=int,
         default=10
+    )
+
+    parser.add_argument(
+        "-v", "--verbose",
+        action="store_true",
+        help="Enable verbose output"
     )
 
     parser.add_argument(
