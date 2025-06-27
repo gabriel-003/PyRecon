@@ -10,7 +10,6 @@ PyRecon is a network reconnaissance tool designed to scan TCP ports on target ho
 - Verbose and quiet output modes
 - Results can be saved to file
 - Cross-platform compatibility (Windows, Linux, macOS)
-- Graceful handling of interruptions (Ctrl+C)
 - Hostname resolution support
 
 ## Requirements
