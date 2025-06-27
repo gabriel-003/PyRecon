@@ -171,8 +171,6 @@ def main():
         return
 
 
-    # Test with example.com and 192.168.69.128
-    # Usage example: python3 pyrecon.py 192.168.69.128 -p "1-1000" -t 200 -o results.txt
     # Port scan function call
     results = scan_ports_threaded(target, ports, args.threads, args.verbose)
 
